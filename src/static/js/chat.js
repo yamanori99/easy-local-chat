@@ -98,7 +98,13 @@ function displayMessage(data) {
         // メッセージテキストを表示
         const messageTextDiv = document.createElement('div');
         messageTextDiv.className = 'message-text';
-        messageTextDiv.textContent = data.message;
+        // クライアントIDを表示
+        const clientIdSpan = document.createElement('span');
+        clientIdSpan.className = 'client-id';
+        clientIdSpan.textContent = `Client ID: ${data.client_id}`;
+        messageTextDiv.appendChild(clientIdSpan);
+        messageTextDiv.appendChild(document.createElement('br')); // 改行を追加
+        messageTextDiv.appendChild(document.createTextNode(data.message)); // メッセージを追加
 
         const timestamp = document.createElement('div');
         timestamp.className = 'timestamp';

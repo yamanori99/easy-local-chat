@@ -4,14 +4,23 @@
     box-sizing: border-box;
 }
 
+html, body {
+    height: 100%;
+}
+
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .container {
     max-width: 800px;
-    margin: 2rem auto;
+    width: 100%;
+    height: 80%;
+    margin: 0;
     padding: 0 1rem;
 }
 
@@ -20,6 +29,9 @@ body {
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .chat-header {
@@ -37,9 +49,10 @@ body {
 }
 
 .chat-messages {
-    height: 400px;
+    height: 100%;
     overflow-y: auto;
     padding: 1rem;
+    flex-grow: 1;
 }
 
 .message {
@@ -174,4 +187,11 @@ body {
 .message.self .message-icon {
     margin-left: 8px;
     margin-right: 0;
+}
+
+.client-id {
+    font-size: 0.7rem;
+    color: #888;
+    margin-bottom: 0.2rem;
+    display: block;
 } 
