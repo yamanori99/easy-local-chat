@@ -2,14 +2,14 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import Request
-from typing import Dict, List
+from typing import Dict
 import json
 
 app = FastAPI()
 
 # 静的ファイルとテンプレートの設定
-app.mount("/static", StaticFiles(directory="src/waiting_room/static"), name="static")
-templates = Jinja2Templates(directory="src/waiting_room/templates")
+app.mount("/static", StaticFiles(directory="src/static"), name="static")
+templates = Jinja2Templates(directory="src/templates")
 
 # 接続中のクライアントを保持する辞書
 # key: クライアントID, value: WebSocket接続
