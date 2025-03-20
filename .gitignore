@@ -1,0 +1,24 @@
+# Pythonのバイナリファイル
+__pycache__/
+*.py[cod]
+
+# 仮想環境
+venv/
+.env
+
+# IDEやエディタの設定ファイル
+*.swp
+*.swo
+*.idea/
+*.vscode/
+
+# OSによるファイル
+.DS_Store
+Thumbs.db
+
+# ログファイル
+*.log
+
+# その他の一時ファイル
+*.tmp
+*.temp
