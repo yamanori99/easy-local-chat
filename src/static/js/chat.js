@@ -56,32 +56,40 @@ function sendSystemMessage(type) {
 function displayMessage(data) {
     const messageArea = document.getElementById('messageArea');
     const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${data.client_id === clientId ? 'self' : 'other'}`;
 
-    // メッセージコンテナを作成
-    const messageContainer = document.createElement('div');
-    messageContainer.className = 'message-container';
+    // システムメッセージの場合、特別なクラスを追加
+    if (data.type === 'system') {
+        messageDiv.className = `message system`;
+        messageDiv.textContent = data.message; // メッセージ内容を直接設定
+    } else {
+        messageDiv.className = `message ${data.client_id === clientId ? 'self' : 'other'}`;
 
-    // アイコンを表示
-    const iconDiv = document.createElement('div');
-    iconDiv.className = 'message-icon';
-    const img = document.createElement('img');
-    img.src = `/static/images/default_icon.png`; // アイコンのパス
-    iconDiv.appendChild(img);
-    messageContainer.appendChild(iconDiv);
+        // メッセージコンテナを作成
+        const messageContainer = document.createElement('div');
+        messageContainer.className = 'message-container';
 
-    // メッセージテキストを表示
-    const messageTextDiv = document.createElement('div');
-    messageTextDiv.className = 'message-text';
-    messageTextDiv.textContent = data.message;
+        // アイコンを表示
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'message-icon';
+        const img = document.createElement('img');
+        img.src = `/static/images/default_icon.png`; // アイコンのパス
+        iconDiv.appendChild(img);
+        messageContainer.appendChild(iconDiv);
 
-    const timestamp = document.createElement('div');
-    timestamp.className = 'timestamp';
-    timestamp.textContent = new Date(data.timestamp).toLocaleString();
-    messageTextDiv.appendChild(timestamp);
+        // メッセージテキストを表示
+        const messageTextDiv = document.createElement('div');
+        messageTextDiv.className = 'message-text';
+        messageTextDiv.textContent = data.message;
 
-    messageContainer.appendChild(messageTextDiv);
-    messageDiv.appendChild(messageContainer);
+        const timestamp = document.createElement('div');
+        timestamp.className = 'timestamp';
+        timestamp.textContent = new Date(data.timestamp).toLocaleString();
+        messageTextDiv.appendChild(timestamp);
+
+        messageContainer.appendChild(messageTextDiv);
+        messageDiv.appendChild(messageContainer);
+    }
+
     messageArea.appendChild(messageDiv);
     messageArea.scrollTop = messageArea.scrollHeight;
 }
