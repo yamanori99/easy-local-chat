@@ -1,6 +1,6 @@
 雑記
 
-# オンライン待合室システム - 使用方法
+# ローカルチャットシステム - 使用方法
 
 ## セットアップ手順
 
@@ -12,8 +12,8 @@
 
 ```bash
 # 1. リポジトリをクローン
-git clone https://github.com/yamanori99/OnlineLabEngine.git
-cd OnlineLabEngine
+git clone https://github.com/yamanori99/easy-local-chat.git
+cd easy-local-chat
 
 # 2. 仮想環境の作成
 python3 -m venv venv
@@ -31,7 +31,7 @@ pip install -r requirements.txt
 ### 3. サーバーの起動
 
 ```bash
-uvicorn src.waiting_room.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## 使用方法
@@ -85,18 +85,19 @@ uvicorn src.waiting_room.main:app --reload --host 0.0.0.0 --port 8000
 ### プロジェクト構造
 ```
 OnlineLabEngine/
+├── README.md
+├── check_directory.py
+├── doc/
 ├── requirements.txt
-├── src/
-│   └── waiting_room/
-│       ├── main.py          # バックエンドサーバー
-│       ├── static/
-│       │   ├── css/
-│       │   │   └── style.css    # スタイルシート
-│       │   └── js/
-│       │       └── chat.js      # フロントエンドロジック
-│       └── templates/
-│           └── chat.html        # HTMLテンプレート
-└── venv/                    # 仮想環境
+└── src/
+    ├── main.py          # バックエンドサーバー
+    ├── static/
+    │   ├── css/
+    │   │   └── style.css    # スタイルシート
+    │   └── js/
+    │       └── chat.js      # フロントエンドロジック
+    └── templates/
+        └── chat.html        # HTMLテンプレート
 ```
 
 ### 使用技術
