@@ -5,6 +5,7 @@ from fastapi import Request
 from typing import Dict
 import json
 import random
+from datetime import datetime
 
 def generate_random_color():
     return f'#{random.randint(0, 0xFFFFFF):06x}'
@@ -22,27 +23,45 @@ client_colors: Dict[str, str] = {} # クライアントIDと色の対応を保�
 
 @app.get("/")
 async def get(request: Request):
-    return templates.TemplateResponse("chat.html", {"request": request})
+    return templates.TemplateResponse("login.html", {"request": request})
 
-@app.websocket("/ws/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, client_id: str):
+@app.get("/chat")
+async def chat(request: Request, client_id: str):
+    return templates.TemplateResponse("chat.html", {"request": request, "client_id": client_id})
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    # color = generate_random_color() # 色を生成しない
-    active_connections[client_id] = websocket
-    # client_colors[client_id] = color  # クライアントの色を保存
-    
+    client_id = None
     try:
         while True:
             data = await websocket.receive_json()
-            # メッセージの種類に応じて処理
-            if data["type"] == "message":
-                # 全ての接続中のクライアントにメッセージを送信
+            if not client_id:
+                # クライアントIDがまだ設定されていない場合、初期メッセージから取得
+                if "client_id" in data:
+                    client_id = data["client_id"]
+                    if client_id in active_connections:
+                        # 同じクライアントIDが既に接続されている場合は拒否
+                        print(f"Client ID {client_id} already in use.")
+                        await websocket.close(code=1000, reason="Client ID already in use")
+                        return
+                    active_connections[client_id] = websocket
+                    message = {
+                        "type": "system",
+                        "message": f"Client {client_id} has joined the room",
+                        "timestamp": data["timestamp"]
+                    }
+                    await broadcast_message(message)
+                else:
+                    print("No client_id provided in initial message")
+                    await websocket.close(code=1000, reason="client_id required")
+                    return
+            elif data["type"] == "message":
                 message = {
                     "type": "message",
                     "client_id": client_id,
                     "message": data["message"],
                     "timestamp": data["timestamp"],
-                    #"color": client_colors[client_id]  # 色をメッセージに含める
                 }
                 await broadcast_message(message)
             elif data["type"] == "join":
@@ -53,17 +72,18 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                     "timestamp": data["timestamp"]
                 }
                 await broadcast_message(message)
-                
+
     except WebSocketDisconnect:
-        # クライアントが切断した場合の処理
-        del active_connections[client_id]
-        del client_colors[client_id]  # クライアントの色を削除
-        message = {
-            "type": "system",
-            "message": f"Client {client_id} has left the room",
-            "timestamp": data["timestamp"]
-        }
-        await broadcast_message(message)
+        if client_id:
+            if client_id in active_connections:
+                del active_connections[client_id]
+            # 切断メッセージを送信
+            message = {
+                "type": "system",
+                "message": f"Client {client_id} has left the room",
+                "timestamp": datetime.now().isoformat()
+            }
+            await broadcast_message(message)
 
 async def broadcast_message(message: dict):
     """全ての接続中のクライアントにメッセージをブロードキャストする"""

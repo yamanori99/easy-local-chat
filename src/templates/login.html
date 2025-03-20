@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="login-container">
+            <h1>Login</h1>
+            <form id="login-form">
+                <label for="client-id">Client ID:</label>
+                <input type="text" id="client-id" name="client-id" required>
+                <button type="submit">Enter Chat Room</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const clientId = document.getElementById('client-id').value;
+            // チャットルームにリダイレクト
+            window.location.href = `/chat?client_id=${clientId}`;
+        });
+    </script>
+</body>
+</html> 

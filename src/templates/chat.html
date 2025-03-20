@@ -11,14 +11,17 @@
         <div class="chat-container">
             <div class="chat-header">
                 <h1>Chat Room</h1>
-                <div id="connection-status">
-                    Status: <span id="status-icon"></span> <span id="status-text">Offline</span>
+                <div class="connection-info">
+                    <div id="connection-status">
+                        Status: <span class="status-icon" id="status-icon"></span>
+                        <span id="status-text">Offline</span>
+                    </div>
+                    <div id="client-id" class="client-id">Client ID: N/A</div>
                 </div>
-                <div id="client-id">Client ID: N/A</div>
             </div>
             <div class="chat-messages" id="messageArea"></div>
             <div class="chat-input">
-                <input type="text" id="messageInput" placeholder="Message">
+                <input type="text" id="messageInput" placeholder="Type a message...">
                 <button onclick="sendMessage()">Send</button>
             </div>
         </div>
