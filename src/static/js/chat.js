@@ -1,11 +1,12 @@
 let ws = null;
-const clientId = Math.random().toString(36).substr(2, 9);
+const clientId = "user-" + Math.random().toString(36).substr(2, 5);
 
 function connect() {
     ws = new WebSocket(`ws://${window.location.host}/ws/${clientId}`);
     
     ws.onopen = function() {
-        document.getElementById('connection-status').textContent = 'Status: Online';
+        document.getElementById('status-text').textContent = 'Online';
+        document.getElementById('status-icon').className = 'online';
         document.getElementById('client-id').textContent = `Client ID: ${clientId}`;
         // 参加メッセージを送信
         sendSystemMessage('join');
@@ -17,7 +18,8 @@ function connect() {
     };
 
     ws.onclose = function() {
-        document.getElementById('connection-status').textContent = 'Status: Offline';
+        document.getElementById('status-text').textContent = 'Offline';
+        document.getElementById('status-icon').className = 'offline';
         // 3秒後に再接続を試みる
         setTimeout(connect, 3000);
     };
