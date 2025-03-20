@@ -5,7 +5,8 @@ function connect() {
     ws = new WebSocket(`ws://${window.location.host}/ws/${clientId}`);
     
     ws.onopen = function() {
-        document.getElementById('connection-status').textContent = '接続状態: 接続済み';
+        document.getElementById('connection-status').textContent = 'Status: Online';
+        document.getElementById('client-id').textContent = `Client ID: ${clientId}`;
         // 参加メッセージを送信
         sendSystemMessage('join');
     };
@@ -16,7 +17,7 @@ function connect() {
     };
 
     ws.onclose = function() {
-        document.getElementById('connection-status').textContent = '接続状態: 切断';
+        document.getElementById('connection-status').textContent = 'Status: Offline';
         // 3秒後に再接続を試みる
         setTimeout(connect, 3000);
     };
@@ -55,20 +56,32 @@ function sendSystemMessage(type) {
 function displayMessage(data) {
     const messageArea = document.getElementById('messageArea');
     const messageDiv = document.createElement('div');
-    
-    if (data.type === 'system') {
-        messageDiv.className = 'message system';
-        messageDiv.textContent = data.message;
-    } else {
-        messageDiv.className = `message ${data.client_id === clientId ? 'self' : 'other'}`;
-        messageDiv.textContent = data.message;
-    }
-    
+    messageDiv.className = `message ${data.client_id === clientId ? 'self' : 'other'}`;
+
+    // メッセージコンテナを作成
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'message-container';
+
+    // アイコンを表示
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'message-icon';
+    const img = document.createElement('img');
+    img.src = `/static/images/default_icon.png`; // アイコンのパス
+    iconDiv.appendChild(img);
+    messageContainer.appendChild(iconDiv);
+
+    // メッセージテキストを表示
+    const messageTextDiv = document.createElement('div');
+    messageTextDiv.className = 'message-text';
+    messageTextDiv.textContent = data.message;
+
     const timestamp = document.createElement('div');
     timestamp.className = 'timestamp';
     timestamp.textContent = new Date(data.timestamp).toLocaleString();
-    messageDiv.appendChild(timestamp);
-    
+    messageTextDiv.appendChild(timestamp);
+
+    messageContainer.appendChild(messageTextDiv);
+    messageDiv.appendChild(messageContainer);
     messageArea.appendChild(messageDiv);
     messageArea.scrollTop = messageArea.scrollHeight;
 }

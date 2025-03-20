@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>チャットルーム</title>
+    <title>Chat Room</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
 </head>
 <body>
     <div class="container">
         <div class="chat-container">
             <div class="chat-header">
-                <h1>チャットルーム</h1>
-                <div id="connection-status">接続状態: 切断</div>
+                <h1>Chat Room</h1>
+                <div id="connection-status">status: offline</div>
+                <div id="client-id">Client ID: N/A</div>
             </div>
             <div class="chat-messages" id="messageArea"></div>
             <div class="chat-input">
-                <input type="text" id="messageInput" placeholder="メッセージを入力...">
-                <button onclick="sendMessage()">送信</button>
+                <input type="text" id="messageInput" placeholder="Message">
+                <button onclick="sendMessage()">Send</button>
             </div>
         </div>
     </div>
