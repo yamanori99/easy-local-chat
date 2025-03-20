@@ -1,5 +1,21 @@
 let ws = null;
-const clientId = "user-" + Math.random().toString(36).substr(2, 5);
+const clientId = "client-" + Math.random().toString(36).substr(2, 5);
+
+// クライアントIDから色を生成する関数
+function getColorFromClientId(clientId) {
+    let hash = 0;
+    for (let i = 0; i < clientId.length; i++) {
+        hash = clientId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    let color = '#';
+    for (let i = 0; i < 3; i++) {
+        const value = (hash >> (i * 8)) & 0xFF;
+        color += ('00' + value.toString(16)).substr(-2);
+    }
+    return color;
+}
+
+const clientColor = getColorFromClientId(clientId);
 
 function connect() {
     ws = new WebSocket(`ws://${window.location.host}/ws/${clientId}`);
@@ -73,6 +89,7 @@ function displayMessage(data) {
         // アイコンを表示
         const iconDiv = document.createElement('div');
         iconDiv.className = 'message-icon';
+        iconDiv.style.backgroundColor = data.client_id === clientId ? clientColor : getColorFromClientId(data.client_id); // 自分のメッセージには自分の色、それ以外はクライアントIDから生成
         const img = document.createElement('img');
         img.src = `/static/images/default_icon.png`; // アイコンのパス
         iconDiv.appendChild(img);
