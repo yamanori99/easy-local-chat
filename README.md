@@ -16,6 +16,8 @@
 - pip（Pythonパッケージマネージャー）
 - モダンブラウザ（Chrome, Firefox, Safari, Edge等）
 
+**重要**: macOSやLinuxの最新版では、システムPythonの保護により直接パッケージのインストールができない場合があります。必ず仮想環境を使用することを推奨します。
+
 ## クイックスタート
 
 ### 1. インストール
@@ -47,6 +49,25 @@ uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 http://localhost:8000
 ```
+
+### 4. ネットワークアクセス
+他のデバイスからアクセスする場合：
+
+1. **IPアドレスの確認**
+   ```bash
+   ifconfig | grep "inet " | grep -v 127.0.0.1
+   ```
+
+2. **他のデバイスからのアクセス**
+   ```
+   http://[あなたのIPアドレス]:8000
+   例: http://***.***.***.***:8000
+   ```
+
+3. **ファイアウォール設定**
+   - macOS: システム環境設定 > セキュリティとプライバシー > ファイアウォール
+   - Windows: Windows Defender ファイアウォール
+   - Linux: ufw status でファイアウォール状態を確認
 
 ## 詳細な使用方法
 
@@ -133,6 +154,28 @@ uvicorn src.main:app --ssl-keyfile=./key.pem --ssl-certfile=./cert.pem
    - ブラウザのキャッシュをクリア
    - JavaScript有効化の確認
    - 開発者ツール（F12）でエラーを確認
+
+3. **仮想環境関連の問題**
+   - **externally-managed-environment エラー**
+     ```bash
+     # エラーメッセージが表示された場合は仮想環境を使用
+     python3 -m venv venv
+     source venv/bin/activate  # macOS/Linux
+     .\venv\Scripts\activate   # Windows
+     pip install -r requirements.txt
+     ```
+   
+   - **pip コマンドが見つからない場合**
+     ```bash
+     python3 -m pip install -r requirements.txt
+     ```
+
+4. **ネットワークアクセスの問題**
+   - 他のデバイスからアクセスできない場合：
+     - 同じWiFi/LANネットワークに接続されているか確認
+     - ルーターのゲスト接続分離設定を確認
+     - IPアドレスが正しいか確認
+     - ポート8000がブロックされていないか確認
 
 ## 開発者向け情報
 
