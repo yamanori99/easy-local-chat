@@ -27,3 +27,15 @@ Thumbs.db
 # プライバシー保護のため、実験データはGit管理しない
 data/
 exports/
+
+# バックアップファイル
+backups/
+
+# ログファイル
+*.log
+
+# 認証情報（絶対にGitにコミットしない）
+.credentials
+*credentials*
+*.pem
+*.key

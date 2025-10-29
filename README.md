@@ -41,6 +41,29 @@ pip install -r requirements.txt
 ```
 
 ### 2. サーバーの起動
+
+#### 方法1: 起動スクリプトを使う（推奨）
+
+簡単に起動できるスクリプトを用意しています：
+
+```bash
+# サーバーを起動
+./deployment/start_server.sh
+
+# または、開発モード（自動リロード有効）
+./deployment/start_server_dev.sh
+
+# サーバーを停止
+./deployment/stop_server.sh
+
+# サーバーの状態確認
+./deployment/server_status.sh
+```
+
+詳細は `deployment/README.md` を参照してください。
+
+#### 方法2: 直接uvicornコマンドで起動
+
 ```bash
 uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
