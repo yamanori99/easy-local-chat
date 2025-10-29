@@ -12,8 +12,12 @@
 - **📈 管理画面でのデータ可視化・エクスポート**
 - **💾 JSON/CSV形式でのデータエクスポート**
 
+## 開発環境
+
+M4 Mac mini (16GB / 256GB) / macOS Tahoe 26.0.1 / Python 3.14.0
+
 ## 必要条件
-- Python 3.8以上
+- Python 3.9以上（開発環境: 3.14.0）
 - pip（Pythonパッケージマネージャー）
 - モダンブラウザ（Chrome, Firefox, Safari, Edge等）
 
