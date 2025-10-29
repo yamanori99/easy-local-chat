@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Chat System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            color: #333;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #f5f5f5;
+        }
+
+        .btn-primary {
+            background: #2c3e50;
+            color: white;
+            border-color: #2c3e50;
+        }
+
+        .btn-primary:hover {
+            background: #34495e;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #555;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #777;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .session-list {
+            list-style: none;
+        }
+
+        .session-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            border-left: 3px solid #2c3e50;
+        }
+
+        .session-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .session-id {
+            font-weight: 600;
+            color: #333;
+            font-family: monospace;
+        }
+
+        .session-status {
+            font-size: 0.85rem;
+            padding: 2px 8px;
+            border-radius: 3px;
+            background: #e8e8e8;
+        }
+
+        .session-status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .session-info {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .session-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-small {
+            padding: 4px 12px;
+            font-size: 0.85rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        /* モーダルスタイル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            color: #333;
+            margin: 0;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .checkbox-group:hover {
+            background: #f0f0f0;
+        }
+
+        .checkbox-group label {
+            cursor: pointer;
+            margin: 0;
+            flex: 1;
+        }
+
+        .form-hint {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            background: #95a5a6;
+            color: white;
+            border-color: #95a5a6;
+        }
+
+        .btn-cancel:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-create {
+            background: #27ae60;
+            color: white;
+            border-color: #27ae60;
+        }
+
+        .btn-create:hover {
+            background: #229954;
+        }
+
+        /* モバイル対応 */
+        @media (max-width: 768px) {
+            .modal-content {
+                margin: 20px;
+                padding: 20px;
+                width: calc(100% - 40px);
+            }
+
+            .modal-header h2 {
+                font-size: 1.3rem;
+            }
+
+            .form-group input[type="text"],
+            .form-group input[type="password"] {
+                font-size: 16px; /* iOSでズームを防ぐ */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1 style="margin: 0;">Admin Panel</h1>
+            <a href="/admin/logout" class="btn" style="text-decoration: none;">Logout</a>
+        </div>
+        
+        <div class="actions">
+            <button class="btn btn-primary" onclick="refreshData()">Refresh</button>
+            <button class="btn btn-primary" onclick="showNewSessionModal()">New Session</button>
+            <div style="margin-left: auto; font-size: 0.85rem; color: #999;">
+                <span id="auto-refresh-status">Auto-refresh: 5s</span>
+            </div>
+        </div>
+
+        <div id="error-message" class="error" style="display: none;"></div>
+
+        <!-- 現在のセッション -->
+        <div id="current-section" class="section" style="display: none;">
+            <h2>アクティブセッション（単一）</h2>
+            <div class="info-grid" id="current-session-info"></div>
+            <div class="actions" style="margin-top: 15px;">
+                <button class="btn btn-small" onclick="exportCurrentSession('json')">JSON</button>
+                <button class="btn btn-small" onclick="exportCurrentSession('csv')">CSV</button>
+            </div>
+        </div>
+
+        <!-- アクティブセッション -->
+        <div class="section">
+            <h2>Active Sessions</h2>
+            <ul id="active-sessions-list" class="session-list loading">Loading...</ul>
+        </div>
+
+        <!-- 終了済みセッション -->
+        <div class="section">
+            <h2 style="cursor: pointer; user-select: none;" onclick="toggleEndedSessions()">
+                <span id="ended-sessions-toggle">▶</span> Ended Sessions
+                <span id="ended-sessions-count" style="color: #999; font-size: 0.9em;"></span>
+            </h2>
+            <ul id="ended-sessions-list" class="session-list" style="display: none;">
+            </ul>
+        </div>
+    </div>
+
+    <!-- セッション作成モーダル -->
+    <div id="newSessionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Session</h2>
+            </div>
+            <div class="modal-body">
+                <form id="newSessionForm">
+                    <!-- セッションパスワード保護 -->
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="useSessionPassword" onchange="toggleSessionPasswordField()">
+                            <label for="useSessionPassword">
+                                Protect session with password
+                            </label>
+                        </div>
+                        <div id="sessionPasswordField" style="display: none; margin-top: 10px;">
+                            <input type="password" id="sessionPassword" placeholder="Enter session password">
+                        </div>
+                    </div>
+
+                    <!-- ユーザーパスワード設定 -->
+                    <div class="form-group">
+                        <label>User Password Policy</label>
+                        
+                        <div style="margin-top: 10px;">
+                            <label style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
+                                <input type="radio" name="userPasswordPolicy" value="required" style="margin-right: 8px;">
+                                <span>Password required for all users</span>
+                            </label>
+                            
+                            <label style="display: flex; align-items: center; margin-bottom: 10px; cursor: pointer;">
+                                <input type="radio" name="userPasswordPolicy" value="optional" checked style="margin-right: 8px;">
+                                <span>Optional (users choose with or without password)</span>
+                            </label>
+                            
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="radio" name="userPasswordPolicy" value="none" style="margin-right: 8px;">
+                                <span>No password (all users login without password)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 既存セッションの扱い -->
+                    <div class="form-group" style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 5px;">
+                        <div class="form-hint" style="color: #999; text-align: center;">
+                            Existing active sessions will continue running
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeNewSessionModal()">Cancel</button>
+                <button class="btn btn-create" onclick="submitNewSession()">Create Session</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionData = null;
+        let autoRefreshInterval = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshData();
+            // 5秒ごとに自動更新
+            autoRefreshInterval = setInterval(refreshData, 5000);
+        });
+
+        async function refreshData() {
+            await Promise.all([loadCurrentSession(), loadAllSessions()]);
+        }
+
+        async function loadCurrentSession() {
+            try {
+                const response = await fetch('/api/sessions/current/info');
+                if (response.ok) {
+                    currentSessionData = await response.json();
+                    displayCurrentSession(currentSessionData);
+                } else {
+                    document.getElementById('current-section').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Current session load error:', error);
+            }
+        }
+
+        function displayCurrentSession(data) {
+            const section = document.getElementById('current-section');
+            const container = document.getElementById('current-session-info');
+            
+            // アクティブセッションが複数ある場合は表示しない（セッション履歴に表示される）
+            const activeSessions = sessions.filter(s => s.status === 'active');
+            if (activeSessions.length > 1) {
+                section.style.display = 'none';
+                return;
+            }
+            
+            section.style.display = 'block';
+            
+            container.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">セッションID</div>
+                    <div class="info-value" style="font-size: 1rem;">${data.session.session_id}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">参加者</div>
+                    <div class="info-value">${data.session.participant_count}人</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">メッセージ</div>
+                    <div class="info-value">${data.statistics.total_messages}件</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">総文字数</div>
+                    <div class="info-value">${data.statistics.total_chars}</div>
+                </div>
+            `;
+        }
+
+        async function loadAllSessions() {
+            try {
+                const response = await fetch('/api/sessions');
+                const data = await response.json();
+                displaySessions(data.sessions);
+            } catch (error) {
+                showError('Failed to load sessions: ' + error.message);
+            }
+        }
+
+        function displaySessions(sessions) {
+            // アクティブセッションと終了済みセッションに分ける
+            const activeSessions = sessions.filter(s => s.status === 'active');
+            const endedSessions = sessions.filter(s => s.status === 'ended');
+            
+            // アクティブセッションを表示
+            const activeContainer = document.getElementById('active-sessions-list');
+            if (activeSessions.length === 0) {
+                activeContainer.innerHTML = '<li class="loading">⚠️ No active sessions. Please create a new session using the "New Session" button above.</li>';
+            } else {
+                activeContainer.innerHTML = activeSessions.map(session => 
+                    renderSessionItem(session, true)
+                ).join('');
+            }
+            
+            // 終了済みセッションを表示
+            const endedContainer = document.getElementById('ended-sessions-list');
+            const endedCountSpan = document.getElementById('ended-sessions-count');
+            endedCountSpan.textContent = `(${endedSessions.length})`;
+            
+            if (endedSessions.length === 0) {
+                endedContainer.innerHTML = '<li class="loading">No ended sessions</li>';
+            } else {
+                endedContainer.innerHTML = endedSessions.map(session => 
+                    renderSessionItem(session, false)
+                ).join('');
+            }
+        }
+        
+        function renderSessionItem(session, isActive) {
+            const protectedUsers = session.user_passwords ? Object.keys(session.user_passwords) : [];
+            const protectedUsersInfo = protectedUsers.length > 0 
+                ? `<br>🔐 Protected users: ${protectedUsers.join(', ')}` 
+                : '';
+            
+            let userPasswordPolicy;
+            if (session.disable_user_password) {
+                userPasswordPolicy = '<br><strong>👤 User password: Disabled (no password)</strong>';
+            } else if (session.require_user_password) {
+                userPasswordPolicy = '<br><strong>👤 User password: Required for all</strong>';
+            } else {
+                userPasswordPolicy = '<br>👤 User password: Optional (users can login with or without password)';
+            }
+            
+            const endedInfo = !isActive && session.ended_at 
+                ? `<br>Ended: ${new Date(session.ended_at).toLocaleString('en-US')}` 
+                : '';
+            
+            return `
+            <li class="session-item">
+                <div class="session-header">
+                    <span class="session-id">${session.password_protected ? '🔒 ' : ''}${session.session_id}</span>
+                    <span class="session-status ${session.status}">${session.status === 'active' ? 'Active' : 'Ended'}</span>
+                </div>
+                <div class="session-info">
+                    Participants: ${session.participants.join(', ') || 'None'} | 
+                    Messages: ${session.total_messages} | 
+                    Created: ${new Date(session.created_at).toLocaleString('en-US')}
+                    ${endedInfo}
+                    ${session.password_protected ? '<br><strong>🔒 Session password protected</strong>' : ''}
+                    ${userPasswordPolicy}
+                    ${protectedUsersInfo}
+                </div>
+                <div class="session-actions">
+                    ${isActive ? `<button class="btn btn-small" onclick="viewSession('${session.session_id}')" style="background: #3498db; color: white;">View</button>` : ''}
+                    <button class="btn btn-small" onclick="exportSession('${session.session_id}', 'json')">JSON</button>
+                    <button class="btn btn-small" onclick="exportSession('${session.session_id}', 'csv')">CSV</button>
+                    ${isActive ? `<button class="btn btn-small" onclick="endSession('${session.session_id}')" style="background: #fee; color: #c33;">End</button>` : 
+                                  `<button class="btn btn-small" onclick="deleteSession('${session.session_id}')" style="background: #fee; color: #c33;">Delete</button>`}
+                </div>
+            </li>
+            `;
+        }
+        
+        function toggleEndedSessions() {
+            const list = document.getElementById('ended-sessions-list');
+            const toggle = document.getElementById('ended-sessions-toggle');
+            
+            if (list.style.display === 'none') {
+                list.style.display = 'block';
+                toggle.textContent = '▼';
+            } else {
+                list.style.display = 'none';
+                toggle.textContent = '▶';
+            }
+        }
+
+        // モーダル制御関数
+        function showNewSessionModal() {
+            document.getElementById('newSessionModal').style.display = 'block';
+        }
+
+        function closeNewSessionModal() {
+            document.getElementById('newSessionModal').style.display = 'none';
+            // フォームをリセット
+            document.getElementById('newSessionForm').reset();
+            document.getElementById('sessionPasswordField').style.display = 'none';
+        }
+
+        function toggleSessionPasswordField() {
+            const checkbox = document.getElementById('useSessionPassword');
+            const field = document.getElementById('sessionPasswordField');
+            field.style.display = checkbox.checked ? 'block' : 'none';
+        }
+
+        // モーダル外をクリックしたら閉じる
+        window.onclick = function(event) {
+            const modal = document.getElementById('newSessionModal');
+            if (event.target === modal) {
+                closeNewSessionModal();
+            }
+        }
+
+        // ESCキーでモーダルを閉じる
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const modal = document.getElementById('newSessionModal');
+                if (modal.style.display === 'block') {
+                    closeNewSessionModal();
+                }
+            }
+        });
+
+        async function submitNewSession() {
+            const useSessionPassword = document.getElementById('useSessionPassword').checked;
+            const sessionPassword = useSessionPassword ? document.getElementById('sessionPassword').value : '';
+            
+            // ユーザーパスワードポリシーを取得
+            const userPasswordPolicy = document.querySelector('input[name="userPasswordPolicy"]:checked').value;
+            const requireUserPassword = (userPasswordPolicy === 'required');
+            const disableUserPassword = (userPasswordPolicy === 'none');
+
+            // パスワード保護がONなのにパスワードが空の場合
+            if (useSessionPassword && !sessionPassword) {
+                alert('Please enter a session password or uncheck the password protection option.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/sessions/new?end_previous=false&password=${encodeURIComponent(sessionPassword)}&require_user_password=${requireUserPassword}&disable_user_password=${disableUserPassword}`, { 
+                    method: 'POST' 
+                });
+                const data = await response.json();
+                
+                // ユーザーパスワードポリシーの表示文字列
+                let userPasswordText;
+                if (userPasswordPolicy === 'required') {
+                    userPasswordText = '🔐 Required for all users';
+                } else if (userPasswordPolicy === 'optional') {
+                    userPasswordText = '👤 Optional (users can choose)';
+                } else {
+                    userPasswordText = '🔓 No password (login without password)';
+                }
+                
+                let message = '✅ New session created!\n\n' +
+                      'Session ID: ' + data.session.session_id + '\n\n' +
+                      'Settings:\n' +
+                      '- Session password: ' + (sessionPassword ? '🔒 Protected' : '🔓 Open') + '\n' +
+                      '- User password: ' + userPasswordText + '\n\n' +
+                      'Existing sessions remain active.';
+                
+                alert(message);
+                closeNewSessionModal();
+                refreshData();
+            } catch (error) {
+                showError('Failed to create session: ' + error.message);
+            }
+        }
+
+        async function endSession(sessionId) {
+            if (confirm('End this session?\nActive users will be disconnected.')) {
+                try {
+                    await fetch(`/api/sessions/${sessionId}/end`, { method: 'POST' });
+                    alert('Session ended');
+                    refreshData();
+                } catch (error) {
+                    showError('Failed to end session: ' + error.message);
+                }
+            }
+        }
+        
+        async function deleteSession(sessionId) {
+            if (confirm('Delete this session?\nAll data will be permanently removed.')) {
+                try {
+                    const response = await fetch(`/api/sessions/${sessionId}/delete`, { method: 'DELETE' });
+                    if (response.ok) {
+                        alert('Session deleted');
+                        refreshData();
+                    } else {
+                        showError('Failed to delete session');
+                    }
+                } catch (error) {
+                    showError('Failed to delete session: ' + error.message);
+                }
+            }
+        }
+        
+        function viewSession(sessionId) {
+            // 読み取り専用モードでセッションを開く
+            window.open(`/viewer?session_id=${sessionId}`, '_blank', 'width=800,height=600');
+        }
+
+        async function exportCurrentSession(format) {
+            if (currentSessionData) {
+                await exportSession(currentSessionData.session.session_id, format);
+            }
+        }
+
+        async function exportSession(sessionId, format) {
+            try {
+                const response = await fetch(`/api/sessions/${sessionId}/export?format=${format}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `messages_${sessionId}.${format}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    showError('Export failed');
+                }
+            } catch (error) {
+                showError('Export failed: ' + error.message);
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 5000);
+        }
+    </script>
+</body>
+</html>
+
+

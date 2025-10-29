@@ -50,11 +50,60 @@ function getClientColor(clientId) {
 }
 
 let clientId;
+let currentSessionId;
 
-function connect() {
-    // クエリパラメータからclient_idを取得
+async function checkSession() {
+    // 現在のセッションIDを取得
+    try {
+        const response = await fetch('/api/sessions/current/info');
+        if (response.ok) {
+            const data = await response.json();
+            const currentSessionId = data.session.session_id;
+            const savedSessionId = localStorage.getItem('session_id');
+            
+            // 保存されたセッションIDと現在のセッションIDが異なる場合
+            if (savedSessionId && savedSessionId !== currentSessionId) {
+                // セッションが変わったのでログアウト
+                console.log('セッションが更新されました。再ログインが必要です。');
+                localStorage.removeItem('client_id');
+                localStorage.removeItem('session_id');
+                alert('新しいセッションが開始されました。再度ログインしてください。');
+                window.location.href = '/';
+                return false;
+            }
+            
+            // 現在のセッションIDを保存
+            localStorage.setItem('session_id', currentSessionId);
+            return true;
+        }
+    } catch (error) {
+        console.error('Session check error:', error);
+    }
+    return true;
+}
+
+async function connect() {
+    // セッションチェック
+    const sessionValid = await checkSession();
+    if (!sessionValid) {
+        return;
+    }
+
+    // クエリパラメータからclient_id、session_id、パスワード類を取得
     const urlParams = new URLSearchParams(window.location.search);
     clientId = urlParams.get('client_id');
+    let sessionId = urlParams.get('session_id');
+    const sessionPassword = urlParams.get('session_password');
+    const userPassword = urlParams.get('user_password');
+
+    // クエリパラメータにない場合はlocalStorageから取得
+    if (!clientId) {
+        clientId = localStorage.getItem('client_id');
+    }
+    
+    if (!sessionId) {
+        sessionId = localStorage.getItem('session_id');
+    }
 
     if (!clientId) {
         alert('Client ID is required.');
@@ -62,19 +111,66 @@ function connect() {
         return;
     }
 
-    ws = new WebSocket(`ws://${window.location.host}/ws`);
+    // クライアントIDとセッションIDをlocalStorageに保存（念のため）
+    localStorage.setItem('client_id', clientId);
+    if (sessionId) {
+        localStorage.setItem('session_id', sessionId);
+    }
+    // パスワードも保存
+    if (sessionPassword && sessionId) {
+        localStorage.setItem('session_password_' + sessionId, sessionPassword);
+    }
+    if (userPassword && sessionId && clientId) {
+        localStorage.setItem('user_password_' + sessionId + '_' + clientId, userPassword);
+    }
+
+    // グローバル変数に保存
+    currentSessionId = sessionId;
+
+    // WebSocket接続にsession_idを含める
+    const wsUrl = sessionId 
+        ? `ws://${window.location.host}/ws?session_id=${sessionId}`
+        : `ws://${window.location.host}/ws`;
     
-    ws.onopen = function() {
+    ws = new WebSocket(wsUrl);
+    
+    ws.onopen = async function() {
         document.getElementById('status-text').textContent = 'Online';
         document.getElementById('status-icon').className = 'online';
         document.getElementById('client-id').textContent = `Client ID: ${clientId}`;
+        
+        // 過去のメッセージを読み込む
+        await loadPastMessages();
+        
         // 参加メッセージを送信
         sendSystemMessage('join');
     };
 
     ws.onmessage = function(event) {
         const data = JSON.parse(event.data);
-        displayMessage(data);
+        
+        // セッション終了メッセージの処理
+        if (data.type === 'session_end') {
+            displayMessage(data);
+            // 3秒後にログイン画面へリダイレクト
+            setTimeout(() => {
+                alert('Session has been ended. Please login again.');
+                // localStorageのクリーンアップ
+                const sessionId = localStorage.getItem('session_id');
+                const clientId = localStorage.getItem('client_id');
+                localStorage.removeItem('client_id');
+                localStorage.removeItem('session_id');
+                if (sessionId) {
+                    localStorage.removeItem('session_password_' + sessionId);
+                }
+                if (sessionId && clientId) {
+                    localStorage.removeItem('user_password_' + sessionId + '_' + clientId);
+                }
+                window.location.href = '/';
+            }, 3000);
+        } else {
+            displayMessage(data);
+        }
     };
 
     ws.onclose = function(event) {
@@ -126,8 +222,13 @@ function displayMessage(data) {
     const messageDiv = document.createElement('div');
 
     // システムメッセージの場合、特別なクラスを追加
-    if (data.type === 'system') {
+    if (data.type === 'system' || data.type === 'session_end') {
         messageDiv.className = `message system`;
+        if (data.type === 'session_end') {
+            messageDiv.style.backgroundColor = '#fff3cd';
+            messageDiv.style.color = '#856404';
+            messageDiv.style.fontWeight = 'bold';
+        }
         messageDiv.textContent = data.message; // メッセージ内容を直接設定
     } else {
         messageDiv.className = `message ${data.client_id === clientId ? 'self' : 'other'}`;
@@ -176,6 +277,82 @@ document.getElementById('messageInput').addEventListener('keypress', function(e)
     }
 });
 
+// 過去のメッセージを読み込む関数
+async function loadPastMessages() {
+    try {
+        // セッションIDが設定されていない場合は何もしない
+        if (!currentSessionId) {
+            console.log('[loadPastMessages] No session ID available');
+            return;
+        }
+        
+        console.log(`[loadPastMessages] Loading messages for session: ${currentSessionId}, clientId: ${clientId}`);
+        
+        // セッションのメッセージを取得
+        const messagesResponse = await fetch(`/api/sessions/${currentSessionId}/messages`);
+        if (!messagesResponse.ok) {
+            console.log('[loadPastMessages] Failed to fetch messages, status:', messagesResponse.status);
+            return;
+        }
+        
+        const data = await messagesResponse.json();
+        const messages = data.messages;
+        
+        console.log(`[loadPastMessages] Total messages in session: ${messages.length}`);
+        
+        // 自分が最初に参加した時刻を探す
+        let myJoinTime = null;
+        for (const msg of messages) {
+            if (msg.message_type === 'system' && 
+                msg.client_id === clientId && 
+                msg.content.includes('joined')) {
+                myJoinTime = new Date(msg.timestamp);
+                console.log(`[loadPastMessages] Found join message at: ${myJoinTime.toISOString()}`);
+                break;
+            }
+        }
+        
+        // 自分が参加した記録がない場合は、履歴を表示しない（初回参加）
+        if (!myJoinTime) {
+            console.log('[loadPastMessages] First time joining this session - no past messages to load');
+            return;
+        }
+        
+        // 自分が参加した時刻以降のメッセージのみを表示
+        let loadedCount = 0;
+        messages.forEach(msg => {
+            const msgTime = new Date(msg.timestamp);
+            
+            // 自分の参加時刻より前のメッセージはスキップ
+            if (msgTime < myJoinTime) {
+                return;
+            }
+            
+            // 自分の最初の参加メッセージはスキップ（新しく送信されるため）
+            if (msg.message_type === 'system' && 
+                msg.client_id === clientId && 
+                msg.content.includes('joined') &&
+                Math.abs(msgTime - myJoinTime) < 1000) {  // 1秒以内なら同じメッセージ
+                return;
+            }
+            
+            // メッセージを画面に表示
+            displayMessage({
+                type: msg.message_type,
+                client_id: msg.client_id,
+                message: msg.content,
+                timestamp: msg.timestamp
+            });
+            
+            loadedCount++;
+        });
+        
+        console.log(`[loadPastMessages] Loaded ${loadedCount} past messages (since you joined)`);
+    } catch (error) {
+        console.error('[loadPastMessages] Error:', error);
+    }
+}
+
 // 初期接続
 connect();
 
@@ -190,4 +367,33 @@ function testColorDistribution(numUsers) {
 }
 
 // テスト実行
-// testColorDistribution(100); 
+// testColorDistribution(100);
+
+// ログアウト機能
+function logout() {
+    if (confirm('ログアウトしますか？')) {
+        // WebSocket接続を閉じる
+        if (ws) {
+            ws.close();
+        }
+        // localStorageから全てのデータを削除
+        const sessionId = localStorage.getItem('session_id');
+        const savedClientId = localStorage.getItem('client_id');
+        
+        localStorage.removeItem('client_id');
+        localStorage.removeItem('session_id');
+        
+        // セッションパスワード削除
+        if (sessionId) {
+            localStorage.removeItem('session_password_' + sessionId);
+        }
+        
+        // ユーザーパスワード削除
+        if (sessionId && savedClientId) {
+            localStorage.removeItem('user_password_' + sessionId + '_' + savedClientId);
+        }
+        
+        // ログインページへリダイレクト
+        window.location.href = '/';
+    }
+} 

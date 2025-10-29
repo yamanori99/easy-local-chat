@@ -1,36 +1,36 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Room</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    <title>Session Viewer (Admin)</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
     <div class="container">
         <div class="chat-container">
             <div class="chat-header">
-                <h1>Chat Room</h1>
+                <h1>🔍 Session Viewer (Read-Only)</h1>
                 <div class="connection-info">
                     <div id="connection-status">
                         Status: <span class="status-icon" id="status-icon"></span>
                         <span id="status-text">Offline</span>
                     </div>
-                    <div id="client-id" class="client-id">Client ID: N/A</div>
+                    <div id="viewer-info" class="client-id">Viewer Mode</div>
                     <div id="session-info" class="session-info">
                         <span class="session-label">Session:</span> 
                         <span id="session-id">{{ session_id }}</span>
                     </div>
-                    <button id="logout-btn" class="logout-btn" onclick="logout()">ログアウト</button>
+                    <button onclick="window.close()" class="logout-btn">Close</button>
                 </div>
             </div>
             <div class="chat-messages" id="messageArea"></div>
-            <div class="chat-input">
-                <input type="text" id="messageInput" placeholder="Type a message...">
-                <button onclick="sendMessage()">Send</button>
+            <div class="chat-input" style="background: #f0f0f0; padding: 15px; text-align: center; color: #666; border-top: 2px solid #ddd;">
+                <span style="font-style: italic;">👁️ View-only mode - Messages cannot be sent</span>
             </div>
         </div>
     </div>
-    <script src="{{ url_for('static', path='/js/chat.js') }}"></script>
+    <script src="/static/js/viewer.js"></script>
 </body>
-</html> 
+</html>
+

@@ -1,5 +1,3 @@
-ちゃっぴーが作った雑記
-
 # ローカルチャットシステム
 
 シンプルで使いやすいローカルチャットシステムです。WebSocketを使用したリアルタイムコミュニケーションを実現します。
@@ -10,6 +8,9 @@
 - 自動再接続機能
 - レスポンシブデザイン
 - システムメッセージ表示
+- **📊 セッション・メッセージデータ保存機能（研究用）**
+- **📈 管理画面でのデータ可視化・エクスポート**
+- **💾 JSON/CSV形式でのデータエクスポート**
 
 ## 必要条件
 - Python 3.8以上
@@ -44,13 +45,27 @@ pip install -r requirements.txt
 uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 3. アプリケーションへのアクセス
-ブラウザで以下のURLにアクセス：
+初回起動時に管理者パスワードの設定を求められます。
+
+### 3. セッションの作成（初回必須）
+
+**管理画面にアクセス**：
+```
+http://localhost:8000/admin
+```
+
+1. 設定した管理者パスワードでログイン
+2. 「Create New Session」ボタンをクリック
+3. セッションが作成されます
+
+### 4. チャット画面へのアクセス
+
+セッション作成後、参加者は以下のURLにアクセス：
 ```
 http://localhost:8000
 ```
 
-### 4. ネットワークアクセス
+### 5. ネットワークアクセス
 他のデバイスからアクセスする場合：
 
 1. **IPアドレスの確認**
@@ -68,6 +83,59 @@ http://localhost:8000
    - macOS: システム環境設定 > セキュリティとプライバシー > ファイアウォール
    - Windows: Windows Defender ファイアウォール
    - Linux: ufw status でファイアウォール状態を確認
+
+## 📊 データ保存機能（研究用）
+
+### セッション管理
+- **自動セッション作成**: サーバー起動時に自動的に新しいセッションが作成されます
+- **セッションID**: タイムスタンプベースで一意のIDが生成されます（例: `session_20251029_143052`）
+- **参加者追跡**: 各セッションで誰が参加したかを記録
+- **メッセージカウント**: セッションごとの総メッセージ数を追跡
+
+### データ保存
+全てのメッセージは以下の情報とともに自動保存されます：
+- メッセージID（一意）
+- セッションID
+- クライアントID（ユーザー名）
+- メッセージタイプ（message/system）
+- メッセージ内容
+- タイムスタンプ
+- メタデータ（文字数、単語数など）
+
+### 管理画面（/admin）
+管理画面では以下の操作が可能です：
+- **現在のセッション情報表示**: アクティブなセッションの統計をリアルタイム表示
+- **全セッション履歴**: 過去のセッション一覧を確認
+- **データエクスポート**: JSON/CSV形式でデータをダウンロード
+  - `messages.json`: 全メッセージデータ
+  - `messages.csv`: CSV形式のメッセージ一覧
+  - `session_summary.json`: セッションサマリー
+- **セッション管理**: 新規セッション作成、セッション終了
+
+### データ構造
+```
+data/
+├── sessions/          # セッション情報
+│   └── session_YYYYMMDD_HHMMSS.json
+└── messages/          # メッセージデータ
+    └── session_YYYYMMDD_HHMMSS.json
+
+exports/              # エクスポートされたファイル
+├── messages_session_xxx_YYYYMMDD_HHMMSS.csv
+├── messages_session_xxx_YYYYMMDD_HHMMSS.json
+└── session_summary_session_xxx_YYYYMMDD_HHMMSS.json
+```
+
+### API エンドポイント
+研究用に以下のAPIエンドポイントを利用できます：
+- `GET /api/sessions`: 全セッション取得
+- `GET /api/sessions/{session_id}`: 特定のセッション情報
+- `GET /api/sessions/{session_id}/messages`: セッションのメッセージ取得
+- `GET /api/sessions/{session_id}/statistics`: セッション統計
+- `GET /api/sessions/current/info`: 現在のセッション情報
+- `POST /api/sessions/{session_id}/export?format=json|csv`: データエクスポート
+- `POST /api/sessions/{session_id}/end`: セッション終了
+- `POST /api/sessions/new`: 新規セッション作成
 
 ## 詳細な使用方法
 
@@ -184,12 +252,30 @@ uvicorn src.main:app --ssl-keyfile=./key.pem --ssl-certfile=./cert.pem
 easy-local-chat/
 ├── README.md
 ├── requirements.txt
+├── data/                    # データ保存ディレクトリ（自動生成）
+│   ├── sessions/           # セッションデータ
+│   └── messages/           # メッセージデータ
+├── exports/                 # エクスポートファイル（自動生成）
 └── src/
-    ├── main.py          # サーバーサイドロジック
-    ├── static/          # 静的ファイル
+    ├── main.py             # サーバーサイドロジック
+    ├── models/             # データモデル
+    │   ├── session.py
+    │   └── message.py
+    ├── managers/           # データ管理
+    │   ├── session_manager.py
+    │   └── message_store.py
+    ├── exporters/          # データエクスポート
+    │   └── data_exporter.py
+    ├── static/             # 静的ファイル
     │   ├── css/
-    │   └── js/
-    └── templates/       # HTMLテンプレート
+    │   ├── js/
+    │   └── images/
+    └── templates/          # HTMLテンプレート
+        ├── login.html
+        ├── chat.html
+        ├── admin.html
+        ├── admin_login.html
+        └── viewer.html
 ```
 
 ### 使用技術
@@ -214,3 +300,6 @@ easy-local-chat/
   - WebSocket通信の監視
   - コンソールログの確認
 
+## ライセンス
+
+MIT License
